@@ -29,6 +29,15 @@ def readData(file):
 def sigmoid(x):
     return 1/(1 + np.exp(-x)) 
 
+def deltaOutput(output,error):
+    deri = np.dot(output.T,(1-output))
+    return np.dot(deri,error.T)
+
+def deltaHidden(activationValues,d,weights):
+    sumOfNext = np.matmul(d.T,weights)
+    deri = np.dot(activationValues.T,(1-activationValues))
+    delta = np.dot(deri,sumOfNext.T)
+    return delta
 
 class ANN:
     def __init__(self,numOfInputNeurons,numHiddenLayerOneNeurons,numHiddenLayerTwoNeurons,numOutputNeurons,learningRate,momentum):
@@ -63,7 +72,7 @@ class ANN:
             self.weights0 = np.random.uniform(low=-1.0,high=1.0,size=(numHiddenLayerOneNeurons,numOfInputNeurons))
             inputBiasWeight = np.full((self.weights0.shape[0],1),-1)
             self.weights0 = np.append(self.weights0,inputBiasWeight,axis=1)
-          
+            
             self.weights0pre = np.zeros_like(self.weights0)
 
             if numHiddenLayerTwoNeurons == 0:
@@ -71,7 +80,6 @@ class ANN:
                 inputBiasWeight = np.full((self.weights1.shape[0],1),-1)
                 self.weights1 = np.append(self.weights1,inputBiasWeight,axis=1)
         
-
                 self.weights1pre = np.zeros_like(self.weights1)
             else:
                 self.weights1 = np.random.uniform(low=-1.0,high=1.0,size=(numHiddenLayerTwoNeurons,numHiddenLayerOneNeurons))
@@ -86,10 +94,11 @@ class ANN:
                 self.weights1pre = np.zeros_like(self.weights1)
                 self.weights2pre = np.zeros_like(self.weights2)
 
+
     def train(self,inputData,outputData,maxIterations):
         for _ in range(maxIterations):
             self.forwardPass(inputData)
-            self.backPropagate(outputData)
+            self.backPropagate(outputData,inputData)
     
     def predict(self,inputData):
         self.forwardPass(inputData)
@@ -110,54 +119,48 @@ class ANN:
                 self.layer2 = np.append(self.layer2, np.ones((self.layer2.shape[0], 1)), axis=1) 
                 self.outputLayer = sigmoid(np.dot(self.layer2,self.weights2.T))
 
-    def backPropagate(self,outputData):
+    def backPropagate(self,outputData,inputData):
         error = outputData - self.outputLayer
        
 
         if self.weights2 is not None:
-            d_2 = 1 * np.dot(self.outputLayer.T,np.dot((1-self.outputLayer),error.T))
+            deltaOut = deltaOutput(self.outputLayer,error)
             momentumTerm = self.momentum * (self.weights2 - self.weights2pre)
-            adjustment = self.learningRate* np.dot(d_2,self.layer2) + momentumTerm
+            adjustment = self.learningRate* np.dot(deltaOut,self.layer2) + momentumTerm
             self.weights2pre = self.weights2
             self.weights2 += adjustment
 
-
-            inner = np.inner(self.weights2,d_2) 
-            d_1 = 1 * np.dot(self.layer2.T,(1-self.layer2)) * inner
+            deltaHid2 = deltaHidden(self.layer2,deltaOut,self.weights1)
             momentumTerm = self.momentum * (self.weights1 - self.weights1pre)
             self.weights1pre = self.weights1
-            self.weights1 += (self.learningRate * np.dot(self.layer2,d_1.T) + momentumTerm)
+            self.weights1 += (self.learningRate * np.dot(deltaHid2,self.layer1) + momentumTerm)
 
 
-            inner = np.inner(self.weights1,d_1) 
-            d_0 = 1 * np.dot(self.layer1.T,(1-self.layer1)) * inner
+            deltaHid1 = deltaHidden(self.layer1,deltaHid2,self.weights0)
             momentumTerm = self.momentum * (self.weights0 - self.weights0pre)
             self.weights0pre = self.weights0
-            self.weights0 += (self.learningRate * np.dot(self.layer1,d_0.T) + momentumTerm)
+            self.weights0 += (self.learningRate * np.dot(inputData,deltaHid1) + momentumTerm)
 
 
         elif self.weights1 is not None:
-            d_1 = 1 * np.dot(self.outputLayer.T,np.dot((1-self.outputLayer),error.T))
+            deltaOut = deltaOutput(self.outputLayer,error)
             momentumTerm = self.momentum * (self.weights1 - self.weights1pre)
-            adjustment = self.learningRate* np.dot(d_1,self.layer1) + momentumTerm
+            adjustment = self.learningRate* np.dot(deltaOut,self.layer1) + momentumTerm
             self.weights1pre = self.weights1
             self.weights1 += adjustment
 
-        
-            print(self.weights1)
-            print(d_1)
-            inner = np.inner(self.weights1.T,d_1.T) 
-            d_0 = 1 * np.dot(self.layer1.T,(1-self.layer1)) 
+            deltaHid = deltaHidden(self.layer1,deltaOut,self.weights1)
             momentumTerm = self.momentum * (self.weights0 - self.weights0pre)
+            adjustment = self.learningRate* np.dot(deltaHid,inputData) + momentumTerm
             self.weights0pre = self.weights0
-            self.weights0 += (np.dot(self.learningRate * d_0,inputData.T) + momentumTerm)
+            self.weights0 += adjustment
 
 
         else: 
-            d_0 = 1 * np.dot(self.outputLayer.T,error*(1-self.outputLayer))
+            deltaOut = deltaOutput(self.outputLayer,error)
             momentumTerm = self.momentum * (self.weights0 - self.weights0pre)
             self.weights0pre = self.weights0
-            self.weights0 += (self.learningRate * np.dot(self.outputLayer,d_0.T) + momentumTerm)
+            self.weights0 += (self.learningRate * np.dot(self.outputLayer,deltaOut) + momentumTerm)
 
 
            
@@ -171,5 +174,5 @@ if __name__ == "__main__":
     trainData = readData(parameters[-2])
     artificialNeuralNetwork.train(trainData[0],trainData[1],parameters[-3])
 
-    # testData = readData(parameters[-1])
-    # print(artificialNeuralNetwork.predict(testData[0]))
+    testData = readData(parameters[-1])
+    print(artificialNeuralNetwork.predict(testData[0]))
