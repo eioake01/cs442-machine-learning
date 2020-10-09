@@ -30,13 +30,13 @@ def sigmoid(x):
     return 1/(1 + np.exp(-x)) 
 
 def deltaOutput(output,error):
-    deri = np.dot(output.T,(1-output))
-    return np.dot(deri,error.T)
+    deri = np.multiply(output,(1-output))
+    return np.multiply(deri,error)
 
 def deltaHidden(activationValues,d,weights):
-    sumOfNext = np.matmul(d.T,weights)
-    deri = np.dot(activationValues.T,(1-activationValues))
-    delta = np.dot(deri,sumOfNext.T)
+    sumOfNext = np.matmul(d,weights)
+    deri = np.multiply(activationValues,(1-activationValues))
+    delta = np.multiply(deri,sumOfNext)
     return delta
 
 class ANN:
@@ -63,37 +63,21 @@ class ANN:
 
 
         if numHiddenLayerOneNeurons == 0:
-            self.weights0 = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numOutnumOfInputNeurons))
-            inputBiasWeight = np.full((self.weights0.shape[0],1),-1)
-            self.weights0 = np.append(self.weights0,inputBiasWeight,axis=1)
-          
+            self.weights0 = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numOfInputNeurons+1))          
             self.weights0pre = np.zeros_like(self.weights0)
         else:
-            self.weights0 = np.random.uniform(low=-1.0,high=1.0,size=(numHiddenLayerOneNeurons,numOfInputNeurons))
-            inputBiasWeight = np.full((self.weights0.shape[0],1),-1)
-            self.weights0 = np.append(self.weights0,inputBiasWeight,axis=1)
-            
+            self.weights0 = np.random.uniform(low=-1.0,high=1.0,size=(numHiddenLayerOneNeurons,numOfInputNeurons+1))            
             self.weights0pre = np.zeros_like(self.weights0)
 
             if numHiddenLayerTwoNeurons == 0:
-                self.weights1 = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numHiddenLayerOneNeurons))
-                inputBiasWeight = np.full((self.weights1.shape[0],1),-1)
-                self.weights1 = np.append(self.weights1,inputBiasWeight,axis=1)
-        
+                self.weights1 = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numHiddenLayerOneNeurons+1))        
                 self.weights1pre = np.zeros_like(self.weights1)
             else:
-                self.weights1 = np.random.uniform(low=-1.0,high=1.0,size=(numHiddenLayerTwoNeurons,numHiddenLayerOneNeurons))
-                inputBiasWeight = np.full((self.weights1.shape[0],1),-1)
-                self.weights1 = np.append(self.weights1,inputBiasWeight,axis=1)
-                
-
-                self.weights2 = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numHiddenLayerOneNeurons))
-                inputBiasWeight = np.full((self.weights2.shape[0],1),-1)
-                self.weights2 = np.append(self.weights2,inputBiasWeight,axis=1)
+                self.weights1 = np.random.uniform(low=-1.0,high=1.0,size=(numHiddenLayerTwoNeurons,numHiddenLayerOneNeurons+1))
+                self.weights2 = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numHiddenLayerTwoNeurons+1))
 
                 self.weights1pre = np.zeros_like(self.weights1)
                 self.weights2pre = np.zeros_like(self.weights2)
-
 
     def train(self,inputData,outputData,maxIterations):
         for _ in range(maxIterations):
@@ -126,32 +110,36 @@ class ANN:
         if self.weights2 is not None:
             deltaOut = deltaOutput(self.outputLayer,error)
             momentumTerm = self.momentum * (self.weights2 - self.weights2pre)
-            adjustment = self.learningRate* np.dot(deltaOut,self.layer2) + momentumTerm
+            adjustment = self.learningRate* np.dot(deltaOut.T,self.layer2) + momentumTerm
             self.weights2pre = self.weights2
             self.weights2 += adjustment
 
-            deltaHid2 = deltaHidden(self.layer2,deltaOut,self.weights1)
+            deltaHid2 = deltaHidden(self.layer2,deltaOut,self.weights2)
+            deltaHid2 = np.delete(deltaHid2,-1,axis=1)
             momentumTerm = self.momentum * (self.weights1 - self.weights1pre)
             self.weights1pre = self.weights1
-            self.weights1 += (self.learningRate * np.dot(deltaHid2,self.layer1) + momentumTerm)
+            self.weights1 += (self.learningRate * np.dot(deltaHid2.T,self.layer1) + momentumTerm)
 
 
-            deltaHid1 = deltaHidden(self.layer1,deltaHid2,self.weights0)
+            deltaHid1 = deltaHidden(self.layer1,deltaHid2,self.weights1)
+            deltaHid1 = np.delete(deltaHid1,-1,axis=1)
             momentumTerm = self.momentum * (self.weights0 - self.weights0pre)
             self.weights0pre = self.weights0
-            self.weights0 += (self.learningRate * np.dot(inputData,deltaHid1) + momentumTerm)
+            self.weights0 += (self.learningRate * np.dot(deltaHid1.T,inputData) + momentumTerm)
 
 
         elif self.weights1 is not None:
             deltaOut = deltaOutput(self.outputLayer,error)
             momentumTerm = self.momentum * (self.weights1 - self.weights1pre)
-            adjustment = self.learningRate* np.dot(deltaOut,self.layer1) + momentumTerm
+            adjustment = self.learningRate* np.dot(deltaOut.T,self.layer1) + momentumTerm
             self.weights1pre = self.weights1
             self.weights1 += adjustment
 
+        
             deltaHid = deltaHidden(self.layer1,deltaOut,self.weights1)
+            deltaHid = np.delete(deltaHid,-1,axis=1)
             momentumTerm = self.momentum * (self.weights0 - self.weights0pre)
-            adjustment = self.learningRate* np.dot(deltaHid,inputData) + momentumTerm
+            adjustment = self.learningRate * np.dot(deltaHid.T,inputData) + momentumTerm
             self.weights0pre = self.weights0
             self.weights0 += adjustment
 
@@ -159,12 +147,9 @@ class ANN:
         else: 
             deltaOut = deltaOutput(self.outputLayer,error)
             momentumTerm = self.momentum * (self.weights0 - self.weights0pre)
+            adjustment = self.learningRate* np.dot(deltaOut.T,self.outputLayer) + momentumTerm
             self.weights0pre = self.weights0
-            self.weights0 += (self.learningRate * np.dot(self.outputLayer,deltaOut) + momentumTerm)
-
-
-           
-
+            self.weights0 += adjustment
 
 
 if __name__ == "__main__":    
