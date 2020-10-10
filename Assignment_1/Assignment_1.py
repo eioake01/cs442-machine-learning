@@ -1,4 +1,4 @@
-import sys,os,numpy as np,math
+import sys,os,numpy as np,math,matplotlib.pyplot as plt
 
 def readParameters():
     parameters = open(os.path.join(sys.path[0],'parameters.txt'),"r")
@@ -38,6 +38,29 @@ def deltaHidden(activationValues,d,weights):
     deri = np.multiply(activationValues,(1-activationValues))
     delta = np.multiply(deri,sumOfNext)
     return delta
+
+def plotError(error):
+    error = np.array(error)
+    plt.figure(1)
+    plt.plot(error[:, 0], error[:, 1], label="Train Error")
+    plt.plot(error[:, 0], error[:, 2], label="Test Error")
+    plt.xlabel("Epochs")
+    plt.ylabel("Error Values")
+    plt.title("Error Graph")
+    plt.legend()
+    
+    
+def plotSuccessRate(successRate):
+    successRate = np.array(successRate)
+    plt.figure(2)
+    plt.plot(successRate[:, 0], successRate[:, 1], label="Train Success Rate")
+    plt.plot(successRate[:, 0], successRate[:, 2], label="Test Success Rate")
+    plt.xlabel("Epochs")
+    plt.ylabel("Success Rate")
+    plt.title("Success Rate Graph")
+    plt.legend()
+    
+
 
 class ANN:
     def __init__(self,numOfInputNeurons,numHiddenLayerOneNeurons,numHiddenLayerTwoNeurons,numOutputNeurons,learningRate,momentum):
@@ -179,3 +202,7 @@ if __name__ == "__main__":
 
     np.savetxt("error.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
     np.savetxt("successrate.txt",successRate,fmt='%i %.4f %.4f',delimiter='\t')
+
+    plotError(error)
+    plotSuccessRate(successRate)
+    plt.show()
