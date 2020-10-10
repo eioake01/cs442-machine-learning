@@ -165,17 +165,17 @@ if __name__ == "__main__":
     for x in range(parameters[-3]):
         artificialNeuralNetwork.forwardPass(trainInputData)
         trainError = (np.sum((trainOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*trainOutputData.shape[1])
-        trainSuccessRate = np.count_nonzero(np.logical_and(np.round(artificialNeuralNetwork.outputLayer),trainOutputData))/ np.count_nonzero(trainOutputData)
-        
+        trainSuccessRate = 1 - np.sum(np.abs((trainOutputData - np.round(artificialNeuralNetwork.outputLayer))))/trainOutputData.shape[0]
+
 
         artificialNeuralNetwork.backPropagate(trainOutputData,trainInputData)
 
         artificialNeuralNetwork.predict(testInputData)
         testError = (np.sum((testOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*testOutputData.shape[1])
-        testSuccessRate = np.count_nonzero(np.logical_and(np.round(artificialNeuralNetwork.outputLayer),testOutputData))/ np.count_nonzero(testOutputData)
+        testSuccessRate = 1 - np.sum(np.abs((testOutputData - np.round(artificialNeuralNetwork.outputLayer))))/testOutputData.shape[0]
 
         error.append([x+1,round(trainError,4),round(testError,4)])
         successRate.append([x+1,trainSuccessRate,testSuccessRate])
 
     np.savetxt("error.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
-    np.savetxt("successrate.txt",successRate,fmt='%i %.2f %.2f',delimiter='\t')
+    np.savetxt("successrate.txt",successRate,fmt='%i %.4f %.4f',delimiter='\t')
