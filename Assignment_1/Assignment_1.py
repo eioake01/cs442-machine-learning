@@ -78,11 +78,6 @@ class ANN:
 
                 self.weights1pre = np.zeros_like(self.weights1)
                 self.weights2pre = np.zeros_like(self.weights2)
-
-    def train(self,inputData,outputData,maxIterations):
-        for _ in range(maxIterations):
-            self.forwardPass(inputData)
-            self.backPropagate(outputData,inputData)
     
     def predict(self,inputData):
         self.forwardPass(inputData)
@@ -153,11 +148,34 @@ class ANN:
 
 
 if __name__ == "__main__":    
-    parameters = readParameters()   
+    parameters = readParameters() 
     artificialNeuralNetwork = ANN(parameters[0],parameters[1],parameters[2],parameters[3],parameters[4],parameters[5])
     
     trainData = readData(parameters[-2])
-    artificialNeuralNetwork.train(trainData[0],trainData[1],parameters[-3])
-
+    trainInputData = trainData[0]
+    trainOutputData = trainData[1]
+    
     testData = readData(parameters[-1])
-    print(artificialNeuralNetwork.predict(testData[0]))
+    testInputData = testData[0]
+    testOutputData = testData[1]
+
+    error = []
+    successRate = []
+
+    for x in range(parameters[-3]):
+        artificialNeuralNetwork.forwardPass(trainInputData)
+        trainError = (np.sum((trainOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*trainOutputData.shape[1])
+        trainSuccessRate = np.count_nonzero(np.logical_and(np.round(artificialNeuralNetwork.outputLayer),trainOutputData))/ np.count_nonzero(trainOutputData)
+        
+
+        artificialNeuralNetwork.backPropagate(trainOutputData,trainInputData)
+
+        artificialNeuralNetwork.predict(testInputData)
+        testError = (np.sum((testOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*testOutputData.shape[1])
+        testSuccessRate = np.count_nonzero(np.logical_and(np.round(artificialNeuralNetwork.outputLayer),testOutputData))/ np.count_nonzero(testOutputData)
+
+        error.append([x+1,round(trainError,4),round(testError,4)])
+        successRate.append([x+1,trainSuccessRate,testSuccessRate])
+
+    np.savetxt("error.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
+    np.savetxt("successrate.txt",successRate,fmt='%i %.2f %.2f',delimiter='\t')
