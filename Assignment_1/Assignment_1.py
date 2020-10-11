@@ -1,5 +1,7 @@
 import sys,os,numpy as np,math,matplotlib.pyplot as plt
 
+# Function to read parameters from a parameters file.
+# The file must follow exactly the structure of the example in the Assignment description.
 def readParameters():
     parameters = open(os.path.join(sys.path[0],'parameters.txt'),"r")
 
@@ -18,6 +20,8 @@ def readParameters():
     return [numInputNeurons,numHiddenLayerOneNeurons,numHiddenLayerTwoNeurons,
     numOutputNeurons,learningRate,momentum,maxIterations,trainFile,testFile]
 
+# Function to read data from a data file.
+# The file must follow exactly the structure of the example in the Assignment description.
 def readData(file):
     path = os.path.join(sys.path[0],file)
     inputData = np.loadtxt(path,delimiter=" ",usecols=(0,1))
@@ -26,19 +30,24 @@ def readData(file):
     outputData = np.transpose(outputData[np.newaxis])
     return [inputData,outputData]
 
+# Function to calculate the sigmoid of a given parameter. 
+# Used when forward passing an artificial neural network.
 def sigmoid(x):
     return 1/(1 + np.exp(-x)) 
 
+#Function to calculate the delta of an output layer of an artificial neural network.
 def deltaOutput(output,error):
     deri = np.multiply(output,(1-output))
     return np.multiply(deri,error)
 
+#Function to calculate the delta of the hidden layers of an artificial neural network.
 def deltaHidden(activationValues,d,weights):
     sumOfNext = np.matmul(d,weights)
     deri = np.multiply(activationValues,(1-activationValues))
     delta = np.multiply(deri,sumOfNext)
     return delta
 
+#Function to plot the error of training and test set.
 def plotError(error):
     error = np.array(error)
     plt.figure(1)
@@ -49,7 +58,7 @@ def plotError(error):
     plt.title("Error Graph")
     plt.legend()
     
-    
+#Function to plot the success rate of training and test set.
 def plotSuccessRate(successRate):
     successRate = np.array(successRate)
     plt.figure(2)
@@ -59,10 +68,11 @@ def plotSuccessRate(successRate):
     plt.ylabel("Success Rate")
     plt.title("Success Rate Graph")
     plt.legend()
-    
 
-
+#Class tha represents an Artificial Neural Network (ANN)
 class ANN:
+    #Constructor of an ANN object.
+    #Initialiazation of weights, activation values, learning rate and momentum.
     def __init__(self,numOfInputNeurons,numHiddenLayerOneNeurons,numHiddenLayerTwoNeurons,numOutputNeurons,learningRate,momentum):
         self.weights0 = None
         self.weights1 = None
@@ -101,12 +111,15 @@ class ANN:
 
                 self.weights1pre = np.zeros_like(self.weights1)
                 self.weights2pre = np.zeros_like(self.weights2)
-    
-    def predict(self,inputData):
-        self.forwardPass(inputData)
-        return self.outputLayer
 
+    #Function to forward pass a neural net.
     def forwardPass(self,inputData):
+
+        # Need to check for all cases:
+        #   No hidden layer (input to output)
+        #   1 hidden layer (input+layer+output)
+        #   2 hidden layers (input+layer1+layer2+output)
+
         if self.weights1 is None:
             self.outputLayer = sigmoid(np.dot(inputData,self.weights0.T))
         else:
@@ -121,9 +134,14 @@ class ANN:
                 self.layer2 = np.append(self.layer2, np.ones((self.layer2.shape[0], 1)), axis=1) 
                 self.outputLayer = sigmoid(np.dot(self.layer2,self.weights2.T))
 
+    #Function to back propagate a neural net.
     def backPropagate(self,outputData,inputData):
         error = outputData - self.outputLayer
        
+        # Need to check for all cases:
+        #   2 hidden layers (input+layer1+layer2+output)
+        #   1 hidden layer (input+layer+output)
+        #   No hidden layer (input to output)
 
         if self.weights2 is not None:
             deltaOut = deltaOutput(self.outputLayer,error)
@@ -186,14 +204,16 @@ if __name__ == "__main__":
     successRate = []
 
     for x in range(parameters[-3]):
+        #Forward pass with train data.
         artificialNeuralNetwork.forwardPass(trainInputData)
         trainError = (np.sum((trainOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*trainOutputData.shape[1])
         trainSuccessRate = 1 - np.sum(np.abs((trainOutputData - np.round(artificialNeuralNetwork.outputLayer))))/trainOutputData.shape[0]
 
-
+        #Back propagate.
         artificialNeuralNetwork.backPropagate(trainOutputData,trainInputData)
 
-        artificialNeuralNetwork.predict(testInputData)
+        #Forward pass with test data.
+        artificialNeuralNetwork.forwardPass(testInputData)
         testError = (np.sum((testOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*testOutputData.shape[1])
         testSuccessRate = 1 - np.sum(np.abs((testOutputData - np.round(artificialNeuralNetwork.outputLayer))))/testOutputData.shape[0]
 
