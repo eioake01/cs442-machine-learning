@@ -1,4 +1,5 @@
-import sys,os,numpy as np,math,matplotlib.pyplot as plt,pandas as pd
+import sys,os,numpy as np,math,matplotlib.pyplot as plt
+
 
 # Function to read parameters from a parameters file.
 # The file must follow exactly the structure of the example in the Assignment description.
@@ -121,6 +122,7 @@ class ANN:
 
                 self.weights1pre = np.zeros_like(self.weights1)
                 self.weights2pre = np.zeros_like(self.weights2)
+        
 
     #Function to forward pass a neural net.
     def forwardPass(self,inputData):
@@ -132,20 +134,17 @@ class ANN:
 
         if self.weights1 is None:
             self.outputLayer = sigmoid(np.dot(inputData,self.weights0.T))
-            self.outputLayer = np.where(self.outputLayer == self.outputLayer.max(axis=1, keepdims=True), self.outputLayer, 0)
         else:
             if self.weights2 is None:
                 self.layer1 = sigmoid(np.dot(inputData,self.weights0.T))
                 self.layer1 = np.append(self.layer1, np.ones((self.layer1.shape[0], 1)), axis=1) 
                 self.outputLayer = sigmoid(np.dot(self.layer1,self.weights1.T))
-                self.outputLayer = np.where(self.outputLayer == self.outputLayer.max(axis=1, keepdims=True), self.outputLayer, 0)
             else:
                 self.layer1 = sigmoid(np.dot(inputData,self.weights0.T))
                 self.layer1 = np.append(self.layer1, np.ones((self.layer1.shape[0], 1)), axis=1) 
                 self.layer2 = sigmoid(np.dot(self.layer1,self.weights1.T))
                 self.layer2 = np.append(self.layer2, np.ones((self.layer2.shape[0], 1)), axis=1) 
                 self.outputLayer = sigmoid(np.dot(self.layer2,self.weights2.T))
-                self.outputLayer = np.where(self.outputLayer == self.outputLayer.max(axis=1, keepdims=True), self.outputLayer, 0)
 
     #Function to back propagate a neural net.
     def backPropagate(self,outputData,inputData):
@@ -183,6 +182,7 @@ class ANN:
             adjustment = self.learningRate* np.dot(deltaOut.T,self.layer1) + momentumTerm
             self.weights1pre = self.weights1
             self.weights1 += adjustment
+           
 
         
             deltaHid = deltaHidden(self.layer1,deltaOut,self.weights1)
@@ -207,39 +207,51 @@ if __name__ == "__main__":
     inputData = normalizeInputData(data[0])
     outputData = normalizeOutputData(data[1])
 
-
     artificialNeuralNetwork = ANN(parameters[0],parameters[1],parameters[2],parameters[3],parameters[4],parameters[5])
     
-    
-    trainInputData = inputData[0:14000, :]
-    trainOutputData = outputData[0:14000, :]
-    
-    
-    testInputData = inputData[14000:20000, :]
-    testOutputData = outputData[14000:20000, :]
 
     error = []
     successRate = []
+    truePositives = []
 
     for x in range(parameters[-2]):
+
+        indices = np.arange(inputData.shape[0])
+        np.random.shuffle(indices)
+        inputData = inputData[indices]
+        outputData = outputData[indices]
+
+        trainInputData = inputData[0:14000, :]
+        trainOutputData = outputData[0:14000, :]
+    
+        testInputData = inputData[14000:20000, :]
+        testOutputData = outputData[14000:20000, :]
+
         #Forward pass with train data.
         artificialNeuralNetwork.forwardPass(trainInputData)
-        trainError = (np.sum((trainOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*trainOutputData.shape[1])
-        trainSuccessRate = 1 - np.sum(np.abs((trainOutputData - np.round(artificialNeuralNetwork.outputLayer))))/trainOutputData.shape[0]
+        trainError = np.square(np.subtract(trainOutputData, artificialNeuralNetwork.outputLayer)).mean()
+        winnerTakesAll = (artificialNeuralNetwork.outputLayer == artificialNeuralNetwork.outputLayer.max(axis=1)[:,None]).astype(int)
+        trainSuccessRate = 1 - np.abs(np.subtract(trainOutputData, winnerTakesAll)).mean()
+        trainTruePositives = np.count_nonzero(np.logical_and(trainOutputData,winnerTakesAll))/winnerTakesAll.shape[0]
 
         #Back propagate.
         artificialNeuralNetwork.backPropagate(trainOutputData,trainInputData)
 
         #Forward pass with test data.
         artificialNeuralNetwork.forwardPass(testInputData)
-        testError = (np.sum((testOutputData-artificialNeuralNetwork.outputLayer)**2))/(2*testOutputData.shape[1])
-        testSuccessRate = 1 - np.sum(np.abs((testOutputData - np.round(artificialNeuralNetwork.outputLayer))))/testOutputData.shape[0]
+        testError = np.square(np.subtract(testOutputData, artificialNeuralNetwork.outputLayer)).mean()
+        winnerTakesAll = (artificialNeuralNetwork.outputLayer == artificialNeuralNetwork.outputLayer.max(axis=1)[:,None]).astype(int)
+        testSuccessRate = 1 - np.abs(np.subtract(testOutputData, winnerTakesAll)).mean()
+        testTruePositives = np.count_nonzero(np.logical_and(testOutputData,winnerTakesAll))/winnerTakesAll.shape[0]
 
+        
         error.append([x+1,round(trainError,4),round(testError,4)])
         successRate.append([x+1,trainSuccessRate,testSuccessRate])
-
+        truePositives.append([x+1,round(trainTruePositives,4),round(testTruePositives,4)])
+    
     np.savetxt("error.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
     np.savetxt("successrate.txt",successRate,fmt='%i %.4f %.4f',delimiter='\t')
+    np.savetxt("truePositives.txt",truePositives,fmt='%i %.4f %.4f',delimiter='\t')
 
     plotError(error)
     plotSuccessRate(successRate)
