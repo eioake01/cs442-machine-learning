@@ -1,17 +1,16 @@
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt,pandas as pd
 import numpy as np
 
-fig, ax = plt.subplots()
-xmin, xmax = -0.5, 1.5
-X = np.arange(xmin, xmax, 0.1)
-ax.scatter(0, 0, color="r")
-ax.scatter(0, 1, color="g")
-ax.scatter(1, 0, color="g")
-ax.scatter(1, 1, color="r")
-ax.set_xlim([xmin, xmax])
-ax.set_ylim([-0.1, 1.1])
-ax.set_title("Figure 2: XOR Seperation")
-m = -1
-ax.plot(X, m * X + 1.2, label="decision boundary", color = "k")
-ax.plot(X, m * X + 0.8, label="decision boundary", color = "k")
+
+path = "/home/elenipersonal/Documents/ML/cs442-machine-learning/Assignment_2/truePositives.txt"
+data = pd.read_csv(path," ")
+data = np.array(data)
+
+plt.figure(1)
+plt.plot(data[:, 0], data[:, 1], label="Train True Positives Rate")
+plt.plot(data[:, 0], data[:, 2], label="Test True Positives")
+plt.xlabel("Epochs")
+plt.ylabel("True Positives Rate Values")
+plt.title("True Positives Graph")
+plt.legend()
 plt.show()

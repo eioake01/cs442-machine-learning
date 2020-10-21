@@ -1,4 +1,6 @@
 error.txt
 successrate.txt
+truePositives.txt
+test*
 *.png
 *.pdf

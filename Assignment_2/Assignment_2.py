@@ -80,6 +80,16 @@ def plotSuccessRate(successRate):
     plt.title("Success Rate Graph")
     plt.legend()
 
+def plotTruePossitives(truePositives):
+    truePositives = np.array(truePositives)
+    plt.figure(3)
+    plt.plot(truePositives[:, 0], truePositives[:, 1], label="Train True Positives")
+    plt.plot(truePositives[:, 0], truePositives[:, 2], label="Test True Positives")
+    plt.xlabel("Epochs")
+    plt.ylabel("True Positives")
+    plt.title("True Positives Graph")
+    plt.legend()
+
 #Class tha represents an Artificial Neural Network (ANN)
 class ANN:
     #Constructor of an ANN object.
@@ -255,4 +265,5 @@ if __name__ == "__main__":
 
     plotError(error)
     plotSuccessRate(successRate)
+    plotTruePossitives(truePositives)
     plt.show()
