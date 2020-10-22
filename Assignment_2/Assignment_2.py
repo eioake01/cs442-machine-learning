@@ -224,18 +224,18 @@ if __name__ == "__main__":
     successRate = []
     truePositives = []
 
-    for x in range(parameters[-2]):
-
-        indices = np.arange(inputData.shape[0])
-        np.random.shuffle(indices)
-        inputData = inputData[indices]
-        outputData = outputData[indices]
-
-        trainInputData = inputData[0:14000, :]
-        trainOutputData = outputData[0:14000, :]
+    trainInputData = inputData[0:14000, :]
+    trainOutputData = outputData[0:14000, :]
     
-        testInputData = inputData[14000:20000, :]
-        testOutputData = outputData[14000:20000, :]
+    testInputData = inputData[14000:20000, :]
+    testOutputData = outputData[14000:20000, :]
+
+    for x in range(parameters[-2]):    
+
+        indices = np.arange(trainInputData.shape[0])
+        np.random.shuffle(indices)
+        trainInputData = trainInputData[indices]
+        trainOutputData = trainOutputData[indices]
 
         #Forward pass with train data.
         artificialNeuralNetwork.forwardPass(trainInputData)
