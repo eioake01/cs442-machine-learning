@@ -6,7 +6,7 @@ The assignment called for creating a SOM using the Kohonen algorithm that can cl
 
 You should make sure you have installed: python3,numpy and matplotlib.
 
-Next, in the same folder have the python file (Assignment_3.py), the parameters file (parameters.txt) and the data file (letter-recognition.txt)
+Next, in the same folder have the python file (Assignment_3.py) and the data file (letter-recognition.txt).
 
 After ensuring all of the above, you can run the programme as such:
 ```bash
