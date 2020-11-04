@@ -1,0 +1,4 @@
+numInputNeurons 16
+gridSize 5
+maxIterations 100
+dataFile letter-recognition.txt
