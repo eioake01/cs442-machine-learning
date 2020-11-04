@@ -1,6 +1,8 @@
 error.txt
 successrate.txt
 truePositives.txt
+*.jpg
 test*
 *.png
 *.pdf
+plots.py

@@ -3,6 +3,6 @@ numHiddenLayerTwoNeurons 0
 numInputNeurons 16
 numOutputNeurons 26
 learningRate 0.0003
-momentum 0.9
-maxIterations 3000
+momentum 0.3
+maxIterations 10000
 dataFile letter-recognition.txt
