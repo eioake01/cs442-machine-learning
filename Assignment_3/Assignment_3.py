@@ -13,10 +13,36 @@ if __name__ == "__main__":
     inputData = data[0]
     outputData = data[1]
 
+    trainInputData = inputData[0:14000, :]
+    trainOutputData = outputData[0:14000, :]
+    
+    testInputData = inputData[14000:20000, :]
+    testOutputData = outputData[14000:20000, :]
+
     gridSize = 5
+    maxIterations = 100
 
-    map = np.empty((gridSize,gridSize))
 
-    print(inputData)
-    print(outputData)
-    print(map)
+    grid =  np.random.rand(gridSize,gridSize)
+
+    for epoch in range(1,maxIterations):
+        # Train
+        for inputInstance in inputData:
+            minDist = float('inf')
+            winnerX = 0
+            winnerY = 0
+
+            for i in range(gridSize):
+                for j in range(gridSize):
+                    weight = grid[i][j]
+                    sumOfDistances = 0
+                    for x in inputData:
+                        sumOfDistances += np.square(x-weight)
+                        
+                    if sumOfDistances < minDist:
+                        minDist = sumOfDistances
+                        winnerX = i
+                        winnerY = j
+    
+
+   
