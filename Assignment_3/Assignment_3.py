@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np,math
 
 
 def readData(file):
@@ -11,8 +11,8 @@ def normalizeInputData(inputData):
     return (inputData - np.min(inputData)) / (np.max(inputData) - np.min(inputData))
 
 def neighbourhoodFunction(s,winnerX,winnerY,X,Y):
-    euclideanDistance = np.sqrt(np.square(winnerX-X)+np.square(winnerY-Y))
-    return np.exp(-(euclideanDistance/(2*np.square(s))))
+    euclideanDistance = math.sqrt((winnerX-X)**2+(winnerY-Y)**2)
+    return math.exp(-(euclideanDistance/(2*(s**2))))
 
 if __name__ == "__main__":  
     data = readData("letter-recognition.txt")
@@ -25,19 +25,19 @@ if __name__ == "__main__":
     testInputData = inputData[14000:20000, :]
     testOutputData = outputData[14000:20000, :]
 
-    gridSize = 5
+    gridSize = 27
     maxIterations = 100
 
     initialLearningRate = learningRate = 0.1
     initialGaussianWidth = gaussianWidth = gridSize/2
-
+    denominator = maxIterations/math.log(initialGaussianWidth)
     # Each input has weights to all nodes
     inputWeights =  np.full((16,gridSize,gridSize),np.random())
 
 
     for epoch in range(1,maxIterations):
         # Train
-        for inputInstance in inputData:
+        for inputInstance in trainInputData:
             minDist = float('inf')
             winnerX = 0
             winnerY = 0
@@ -47,10 +47,10 @@ if __name__ == "__main__":
                 for j in range(gridSize):
                     sumOfDistances = 0
                     # Calculate sum of distances between each input and the node.
-                    for index in range(inputData):
-                        x = inputData[index]
+                    for index in range(inputInstance):
+                        x = inputInstance[index]
                         weight = inputWeights[index][i][j]
-                        sumOfDistances += np.square(x-weight)
+                        sumOfDistances += (x-weight) ** 2
 
                     # Find winner, which node has the least sum of distances between itself and inputs.
                     if sumOfDistances < minDist:
@@ -61,8 +61,12 @@ if __name__ == "__main__":
             # Update weights
             for i in range(gridSize):
                 for j in range(gridSize):
-                    for index in range(inputData):
+                    for index in range(inputInstance):
                         h = neighbourhoodFunction(gaussianWidth,winnerX,winnerY,i,j)
-                        x = inputData[index]
+                        x = inputInstance[index]
                         weight = inputWeights[index][i][j] 
                         inputWeights[index][i][j] += learningRate * h * (x-weight)
+    
+        # At the end of each epoch, update learning rate and gaussian width
+        learningRate = initialLearningRate * math.exp(-epoch/maxIterations)
+        gaussianWidth = initialGaussianWidth * math.exp(-epoch/denominator)
