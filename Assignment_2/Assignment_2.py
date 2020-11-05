@@ -243,7 +243,7 @@ if __name__ == "__main__":
         winnerTakesAll = (artificialNeuralNetwork.outputLayer == artificialNeuralNetwork.outputLayer.max(axis=1)[:,None]).astype(int)
         trainSuccessRate = 1 - np.abs(np.subtract(trainOutputData, winnerTakesAll)).mean()
         trainTruePositives = np.count_nonzero(np.logical_and(trainOutputData,winnerTakesAll))/winnerTakesAll.shape[0]
-
+        print(artificialNeuralNetwork.outputLayer)
         #Back propagate.
         artificialNeuralNetwork.backPropagate(trainOutputData,trainInputData)
 
