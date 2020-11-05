@@ -52,7 +52,7 @@ if __name__ == "__main__":
                         weight = inputWeights[index][i][j]
                         sumOfDistances += np.square(x-weight)
 
-                    # Find winner
+                    # Find winner, which node has the least sum of distances between itself and inputs.
                     if sumOfDistances < minDist:
                         minDist = sumOfDistances
                         winnerX = i
