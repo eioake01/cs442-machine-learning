@@ -38,43 +38,34 @@ if __name__ == "__main__":
 
     for epoch in range(maxIterations):
         print(epoch)
+
         # Train
         trainSumOfMinDistances = 0.0
-        winners = np.zeros((trainInputData.shape[0],2))
+
+        # Present train input
         for inputInstanceIndex in range(trainInputData.shape[0]):
-            minDist = float('inf')
             winnerX = 0
-            winnerY = 0       
-             
-            # For each node (i,j)
+            winnerY = 0
+            sumOfDistances = 0
+            minDist = float('inf')
+
+            # For each node
             for i in range(gridSize):
-                for j in range(gridSize):
-                    sumOfDistances = 0
-                    # Calculate sum of distances between each input and the node.
-                    for inputIndex in range(trainInputData[inputInstanceIndex].shape[0]):
-                        x = trainInputData[inputInstanceIndex][inputIndex]
-                        weight = inputWeights[inputIndex][i][j]
-                        sumOfDistances += (x-weight) ** 2
+                for j in range(gridSize): 
 
-                    # Find winner, which node has the least sum of distances between itself and inputs.
-                    if sumOfDistances < minDist:
-                        minDist = sumOfDistances
-                        winnerX = i
-                        winnerY = j
+                        # Calculate distance
+                        for inputIndex in range(trainInputData[inputInstanceIndex].shape[0]):
+                            x = trainInputData[inputInstanceIndex][inputIndex]
+                            weight = inputWeights[inputIndex][i][j]
+                            sumOfDistances += (x-weight) ** 2
 
-            trainSumOfMinDistances += minDist
-            winners[inputInstanceIndex][0] = winnerX
-            winners[inputInstanceIndex][1] = winnerY          
+                        # If smaller than min, assign node as winner
+                        if sumOfDistances < minDist:
+                            minDist = sumOfDistances
+                            winnerX = i
+                            winnerY = j
 
-        # Error sum of all min dists square / number of instances
-        trainError = (trainSumOfMinDistances ** 2)/trainInputData.shape[0]
-
-    
-        # Update weights
-        for inputInstanceIndex in range(trainInputData.shape[0]):
-            winnerX = winners[inputInstanceIndex][0]
-            winnerY = winners[inputInstanceIndex][1]
-
+            # After determining winner for this input instance, update weights
             for i in range(gridSize):
                 for j in range(gridSize):
                     for inputIndex in range(trainInputData[inputInstanceIndex].shape[0]):
@@ -83,24 +74,33 @@ if __name__ == "__main__":
                         weight = inputWeights[inputIndex][i][j] 
                         inputWeights[inputIndex][i][j] += learningRate * h * (x-weight)
 
-        #Test
+            trainSumOfMinDistances += minDist   
+
+        # Error sum of all min dists square / number of instances
+        trainError = (trainSumOfMinDistances ** 2)/trainInputData.shape[0]
+
+        # Test
         testSumOfMinDistances = 0.0
+
+        # Present test input
         for inputInstanceIndex in range(testInputData.shape[0]):
-            minDist = float('inf')            
+            sumOfDistances = 0
+            minDist = float('inf')
 
-            # For each node (i,j)
+            # For each node
             for i in range(gridSize):
-                for j in range(gridSize):
-                    sumOfDistances = 0
-                    # Calculate sum of distances between each input and the node.
-                    for inputIndex in range(testInputData[inputInstanceIndex].shape[0]):
-                        x = testInputData[inputInstanceIndex][inputIndex]
-                        weight = inputWeights[inputIndex][i][j]
-                        sumOfDistances += (x-weight) ** 2
+                for j in range(gridSize): 
 
-                    # Find winner, which node has the least sum of distances between itself and inputs.
-                    if sumOfDistances < minDist:
-                        minDist = sumOfDistances
+                        # Calculate distance
+                        for inputIndex in range(testInputData[inputInstanceIndex].shape[0]):
+                            x = testInputData[inputInstanceIndex][inputIndex]
+                            weight = inputWeights[inputIndex][i][j]
+                            sumOfDistances += (x-weight) ** 2
+
+                        # If smaller than min, assign node as winner
+                        if sumOfDistances < minDist:
+                            minDist = sumOfDistances
+                           
                 
             testSumOfMinDistances += minDist
 
