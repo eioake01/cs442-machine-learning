@@ -25,17 +25,17 @@ if __name__ == "__main__":
     testOutputData = outputData[14000:20000, :]
 
     gridSize = 27
-    maxIterations = 10
+    maxIterations = 5
 
-    initialLearningRate = learningRate = 0.5
+    initialLearningRate = learningRate = 0.7
     initialGaussianWidth = gaussianWidth = gridSize/2
     denominator = maxIterations/math.log(initialGaussianWidth)
     error = []
 
     # Each input has weights to all nodes
-    inputWeights =  np.full((16,gridSize,gridSize),np.random.random())
+    inputWeights =  np.random.rand(16,gridSize,gridSize)
 
-
+    
     for epoch in range(maxIterations):
         print(epoch)
 
@@ -49,15 +49,13 @@ if __name__ == "__main__":
             sumOfDistances = 0
             minDist = float('inf')
 
+            
             # For each node
             for i in range(gridSize):
                 for j in range(gridSize): 
 
-                        # Calculate distance
-                        for inputIndex in range(trainInputData[inputInstanceIndex].shape[0]):
-                            x = trainInputData[inputInstanceIndex][inputIndex]
-                            weight = inputWeights[inputIndex][i][j]
-                            sumOfDistances += (x-weight) ** 2
+                        weightsToNode = inputWeights[:,i,j]
+                        sumOfDistances = np.sum(np.square(trainInputData[inputInstanceIndex] - weightsToNode))
 
                         # If smaller than min, assign node as winner
                         if sumOfDistances < minDist:
@@ -91,11 +89,8 @@ if __name__ == "__main__":
             for i in range(gridSize):
                 for j in range(gridSize): 
 
-                        # Calculate distance
-                        for inputIndex in range(testInputData[inputInstanceIndex].shape[0]):
-                            x = testInputData[inputInstanceIndex][inputIndex]
-                            weight = inputWeights[inputIndex][i][j]
-                            sumOfDistances += (x-weight) ** 2
+                        weightsToNode = inputWeights[:,i,j]
+                        sumOfDistances = np.sum(np.square(testInputData[inputInstanceIndex] - weightsToNode))
 
                         # If smaller than min, assign node as winner
                         if sumOfDistances < minDist:
@@ -124,10 +119,10 @@ if __name__ == "__main__":
 
             for inputInstanceIndex in range(testInputData.shape[0]):
                 sumOfDistances = 0
-                for inputIndex in range(testInputData[inputInstanceIndex].shape[0]):
-                    x = testInputData[inputInstanceIndex][inputIndex]
-                    weight = inputWeights[inputIndex][i][j]
-                    sumOfDistances += (x-weight) ** 2
+
+                weightsToNode = inputWeights[:,i,j]
+                sumOfDistances = np.sum(np.square(testInputData[inputInstanceIndex] - weightsToNode))
+
                 if sumOfDistances < minDist:
                     minDist = sumOfDistances
                     minDistIndex = inputInstanceIndex
