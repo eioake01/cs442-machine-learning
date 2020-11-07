@@ -25,7 +25,7 @@ if __name__ == "__main__":
     testOutputData = outputData[14000:20000, :]
 
     gridSize = 27
-    maxIterations = 5
+    maxIterations = 10
 
     initialLearningRate = learningRate = 0.7
     initialGaussianWidth = gaussianWidth = gridSize/2
@@ -37,7 +37,6 @@ if __name__ == "__main__":
 
     
     for epoch in range(maxIterations):
-        print(epoch)
 
         # Train
         trainSumOfMinDistances = 0.0
@@ -53,7 +52,6 @@ if __name__ == "__main__":
             # For each node
             for i in range(gridSize):
                 for j in range(gridSize): 
-
                         weightsToNode = inputWeights[:,i,j]
                         sumOfDistances = np.sum(np.square(trainInputData[inputInstanceIndex] - weightsToNode))
 
@@ -66,11 +64,8 @@ if __name__ == "__main__":
             # After determining winner for this input instance, update weights
             for i in range(gridSize):
                 for j in range(gridSize):
-                    for inputIndex in range(trainInputData[inputInstanceIndex].shape[0]):
-                        h = neighbourhoodFunction(gaussianWidth,winnerX,winnerY,i,j)
-                        x = trainInputData[inputInstanceIndex][inputIndex]
-                        weight = inputWeights[inputIndex][i][j] 
-                        inputWeights[inputIndex][i][j] += learningRate * h * (x-weight)
+                    h = neighbourhoodFunction(gaussianWidth,winnerX,winnerY,i,j)
+                    inputWeights[:,i,j] += (learningRate * h * (trainInputData[inputInstanceIndex] -  inputWeights[:,i,j]))
 
             trainSumOfMinDistances += minDist   
 
