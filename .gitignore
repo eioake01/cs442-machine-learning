@@ -1,7 +1,7 @@
-error.txt
+*error.txt
 successrate.txt
 truePositives.txt
-grid.txt
+*grid.txt
 *.jpg
 test*
 *.png
