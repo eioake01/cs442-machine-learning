@@ -1,5 +1,5 @@
 numInputNeurons 16
 gridSize 60
-learningRate 0.7
-maxIterations 20
+learningRate 0.6
+maxIterations 30
 dataFile letter-recognition.txt

@@ -21,5 +21,3 @@ The file results.txt shows the training and testing error of the training data p
 The file clustering.txt shows for each node of the grid, the label that it supports after training.
 
 The file LVQclustering.txt shows for each node of the grid, the label that it supports after applying LVQ to our final grid.
-
-Also, the graphical representation of each file will be displayed.
