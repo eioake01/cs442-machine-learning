@@ -1,0 +1,3 @@
+coefficients 0.2
+centres 0.2
+sigmas 0.2
