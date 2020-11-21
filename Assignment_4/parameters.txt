@@ -1,4 +1,4 @@
-numHiddenLayerNeurons 5
+numHiddenLayerNeurons 4
 numInputNeurons 53
 numOutputNeurons 1
 learningRates learningRates.txt

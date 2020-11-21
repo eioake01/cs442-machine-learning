@@ -18,8 +18,8 @@ def readParameters():
     return [numInputNeurons,numHiddenLayerNeurons,numOutputNeurons,learningRates,sigmas,maxIterations,centresFile,trainFile,testFile]
 
 def readData(file):
-    inputData = np.loadtxt(file,delimiter=",",usecols=[*range(1,55)],dtype=float)
-    outputData = np.loadtxt(file,delimiter=",",usecols=(0),dtype=str)
+    inputData = np.loadtxt(file,delimiter=",",usecols=[*range(1,54)],dtype=float)
+    outputData = np.loadtxt(file,delimiter=",",usecols=(0),dtype=float)
     outputData = np.transpose(outputData[np.newaxis])
     return [inputData,outputData]
 
@@ -87,7 +87,7 @@ class RBF:
             self.sigmas += (self.sigmasLearningRate*partOfSigmasUpdate)
 
     def error(self,outputData):
-        return np.square(self.outputLayer-outputData)/2
+        return np.sum(np.square(self.outputLayer-outputData))/outputData.shape[0]
  
 
 
@@ -101,7 +101,8 @@ if __name__ == "__main__":
 
     testInputData = testData[0]
     testOutputData = testData[1]
-
+    
+   
     learningRates = readLearningRates(parameters[3])
     sigmas = readSigmas(parameters[4])[np.newaxis].T
     initCentres = readCentres(parameters[6])
@@ -133,6 +134,7 @@ if __name__ == "__main__":
         testError = RBFnetwork.error(testOutputData)
         
         error.append([epoch+1,round(trainError,4),round(testError,4)])
+
 
     allCoefficients = np.append(RBFnetwork.coefficients,RBFnetwork.biasCoefficient)
 
