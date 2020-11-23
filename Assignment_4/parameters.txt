@@ -3,7 +3,7 @@ numInputNeurons 53
 numOutputNeurons 1
 learningRates learningRates.txt
 sigmas sigmas.txt
-maxIterations 10
+maxIterations 5
 centresFile centres.txt
 trainFile training.txt
 testFile test.txt
