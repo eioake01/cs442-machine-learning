@@ -5,7 +5,7 @@ successrate.txt
 truePositives.txt
 *grid.txt
 *.jpg
-test*
+test.py
 *.png
 *.pdf
 plots.py

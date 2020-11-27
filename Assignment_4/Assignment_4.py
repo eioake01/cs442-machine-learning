@@ -18,20 +18,20 @@ def readParameters():
     return [numInputNeurons,numHiddenLayerNeurons,numOutputNeurons,learningRates,sigmas,maxIterations,centresFile,trainFile,testFile]
 
 def readData(file):
-    inputData = np.loadtxt(file,delimiter=",",usecols=[*range(1,54)],dtype=float)
-    outputData = np.loadtxt(file,delimiter=",",usecols=(0),dtype=float)
+    inputData = np.loadtxt(file,delimiter=",",usecols=[*range(1,54)])
+    outputData = np.loadtxt(file,delimiter=",",usecols=(0))
     outputData = np.transpose(outputData[np.newaxis])
     return [inputData,outputData]
 
 def readLearningRates(file):
-    return np.loadtxt(file,usecols=(1),dtype=float)
+    return np.loadtxt(file,usecols=(1))
 
 def readSigmas(file):
-    return np.loadtxt(file,usecols=(0),dtype=float)
+    return np.loadtxt(file,usecols=(0),dtype=np.float128)
 
 def readCentres(file):
     return np.loadtxt(file,delimiter=",",dtype=float)
-
+    
 def euclideanDistance(inputInstance,centres):
     return np.sum(np.square(inputInstance-centres),axis=1,keepdims=True)
 
@@ -49,45 +49,46 @@ def plotError(error):
     plt.title("Error Graph")
     plt.legend()
 
-# class RBF:
-#     def __init__(self,numOfInputNeurons,numHiddenLayerNeurons,numOutputNeurons,learningRates,sigmas,initCentres):
-#         self.coefficientLearningRate = learningRates[0]
-#         self.centresLearningRate = learningRates[1]
-#         self.sigmasLearningRate = learningRates[2]
+class RBF:
+    def __init__(self,numOfInputNeurons,numHiddenLayerNeurons,numOutputNeurons,learningRates,sigmas,initCentres):
+        self.coefficientLearningRate = learningRates[0]
+        self.centresLearningRate = learningRates[1]
+        self.sigmasLearningRate = learningRates[2]
 
-#         self.coefficients = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numHiddenLayerNeurons)).T
-#         self.biasCoefficient = np.random.uniform(low=-1.0,high=1.0)
-#         self.centres = initCentres
-#         self.sigmas = sigmas
+        self.coefficients = np.random.uniform(low=-1.0,high=1.0,size=(numOutputNeurons,numHiddenLayerNeurons)).T
+        self.biasCoefficient = np.random.uniform(low=-1.0,high=1.0)
+        self.centres = initCentres
+        self.sigmas = sigmas
         
 
-#         self.outputLayer = None
+        self.outputLayer = None
 
-#     def forwardPass(self,inputData):
-#         self.outputLayer =  np.zeros((inputData.shape[0],1))
+    def forwardPass(self,inputData):
+        self.outputLayer =  np.zeros((inputData.shape[0],1))
 
-#         for i in range(inputData.shape[0]):
-#             gaussian = gaussianFunction(inputData[i],self.centres,self.sigmas)
-#             self.outputLayer[i] = self.biasCoefficient + np.sum(gaussian * self.coefficients)
+        for i in range(inputData.shape[0]):
+            gaussian = gaussianFunction(inputData[i],self.centres,self.sigmas)
+            self.outputLayer[i] = self.biasCoefficient + np.sum(gaussian * self.coefficients)
+        
 
-#     def updateVariables(self,inputData,outputData):
-#         for i in range(inputData.shape[0]):
-#             inputInstance = inputData[i]
-#             error = outputData[i] - self.outputLayer[i]       
+    def updateVariables(self,inputData,outputData):
+        for i in range(inputData.shape[0]):
+            inputInstance = inputData[i]
+            error = outputData[i] - self.outputLayer[i]       
 
-#             gaussian = gaussianFunction(inputInstance,self.centres,self.sigmas)
-#             commonPart = error * self.coefficients * gaussian
+            gaussian = gaussianFunction(inputInstance,self.centres,self.sigmas)
+            commonPart = error * self.coefficients * gaussian
             
-#             partOfCentresUpdate = commonPart *((inputInstance-self.centres)/np.square(self.sigmas))
-#             partOfSigmasUpdate = commonPart * (euclideanDistance(inputInstance,self.centres)/np.power(self.sigmas,3))
+            partOfCentresUpdate = commonPart *((inputInstance-self.centres)/np.square(self.sigmas))
+            partOfSigmasUpdate = commonPart * (euclideanDistance(inputInstance,self.centres)/np.power(self.sigmas,3))
         
-#             self.coefficients += (self.coefficientLearningRate*error*gaussian)
-#             self.biasCoefficient += (self.coefficientLearningRate * error)
-#             self.centres += (self.centresLearningRate * partOfCentresUpdate)
-#             self.sigmas += (self.sigmasLearningRate*partOfSigmasUpdate)
+            self.coefficients += (self.coefficientLearningRate*error*gaussian)
+            self.biasCoefficient += (self.coefficientLearningRate * error)
+            self.centres += (self.centresLearningRate * partOfCentresUpdate)
+            self.sigmas += (self.sigmasLearningRate*partOfSigmasUpdate)
 
-#     def error(self,outputData):
-#         return np.square(np.subtract(outputData, self.outputLayer)).mean()
+    def error(self,outputData):
+        return 0.5 * np.sum(np.square(outputData - self.outputLayer))
  
 
 
@@ -101,88 +102,43 @@ if __name__ == "__main__":
 
     testInputData = testData[0]
     testOutputData = testData[1]
-    
-   
+
     learningRates = readLearningRates(parameters[3])
 
     sigmas = readSigmas(parameters[4])[np.newaxis].T
 
     centres = readCentres(parameters[6])
-    
-    biasCoefficient = np.random.uniform(low=-1.0,high=1.0)
 
-    coefficients = np.random.uniform(low=-1.0,high=1.0,size=(parameters[1],parameters[2]))
+    if(centres.shape[0]!=parameters[1]):
+        print("The number of centres should be the same as the number of neuros of the hidden layer.")
+        quit()
 
-   
-    
-    errorTotal = []   
+    if(sigmas.shape[0]!=parameters[1]):
+        print("The number of sigma values should be the same as the number of neuros of the hidden layer.")
+        quit()
 
+    RBFnetwork = RBF(parameters[0],parameters[1],parameters[2],learningRates,sigmas,centres)
+
+    error =  []   
     for epoch in range(parameters[-4]):
+        # Forward pass with train data
+        RBFnetwork.forwardPass(trainInputData)
+        # Calculate train error
+        trainError = RBFnetwork.error(trainOutputData)
 
-        outputLayer =  np.zeros((trainInputData.shape[0],1))
-        for i in range(trainInputData.shape[0]):
-            gaussian = gaussianFunction(trainInputData[i],centres,sigmas)
-            outputLayer[i] = biasCoefficient + np.sum(gaussian * coefficients)
+        # Update variables
+        RBFnetwork.updateVariables(trainInputData,trainOutputData)
 
-        trainError = np.square(np.subtract(trainOutputData, outputLayer)).mean()
-
-        for i in range(trainInputData.shape[0]):
-            inputInstance = trainInputData[i]
-
-            error = trainOutputData[i] - outputLayer[i]
-            gaussian = gaussianFunction(inputInstance,centres,sigmas)
-            commonPart = error * coefficients * gaussian
-            
-            partOfCentresUpdate = commonPart *((inputInstance-centres)/np.square(sigmas))
-            partOfSigmasUpdate = commonPart * (euclideanDistance(inputInstance,centres)/np.power(sigmas,3))
-
-            coefficients += (learningRates[0]*error*gaussian)
-            biasCoefficient += (learningRates[0] * error)    
-            centres += (learningRates[1] * partOfCentresUpdate)
-            sigmas += (learningRates[2]*partOfSigmasUpdate)
-
-        outputLayer =  np.zeros((testInputData.shape[0],1))
-        for i in range(testInputData.shape[0]):
-            gaussian = gaussianFunction(testInputData[i],centres,sigmas)
-            outputLayer[i] = biasCoefficient + np.sum(gaussian * coefficients)
-
-        testError = np.square(np.subtract(testOutputData, outputLayer)).mean()
+        # Forward pass with test data
+        RBFnetwork.forwardPass(testInputData)
+        # Calculate test error
+        testError = RBFnetwork.error(testOutputData)
         
-        errorTotal.append([epoch+1,round(trainError,4),round(testError,4)])
+        error.append([epoch+1,round(trainError,4),round(testError,4)])
 
-    allCoefficients = np.append(coefficients,biasCoefficient)
-
-    np.savetxt("error.txt",errorTotal,fmt='%i %.4f %.4f',delimiter='\t')
+    allCoefficients = np.append(RBFnetwork.coefficients,RBFnetwork.biasCoefficient)
+    np.savetxt("error.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
     np.savetxt("coefficients.txt",allCoefficients,fmt="%.4f",delimiter=",")
-    plotError(errorTotal)
+    plotError(error)
     plt.show()
-
-    # if(initCentres.shape[0]!=parameters[1]):
-    #     print("The number of centres should be the same as the number of neuros of the hidden layer.")
-    #     quit()
-
-    # if(sigmas.shape[0]!=parameters[1]):
-    #     print("The number of sigma values should be the same as the number of neuros of the hidden layer.")
-    #     quit()
-
-    # RBFnetwork = RBF(parameters[0],parameters[1],parameters[2],learningRates,sigmas,initCentres)
-
-    # error =  []   
-    # for epoch in range(parameters[-4]):
-    #     # Forward pass with train data
-    #     RBFnetwork.forwardPass(trainInputData)
-    #     # Calculate train error
-    #     trainError = RBFnetwork.error(trainOutputData)
-
-    #     # Update variables
-    #     RBFnetwork.updateVariables(trainInputData,trainOutputData)
-
-    #     # Forward pass with test data
-    #     RBFnetwork.forwardPass(testInputData)
-    #     # Calculate test error
-    #     testError = RBFnetwork.error(testOutputData)
-        
-    #     error.append([epoch+1,round(trainError,4),round(testError,4)])
-
-
 
