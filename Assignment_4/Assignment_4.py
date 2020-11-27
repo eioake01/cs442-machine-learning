@@ -62,35 +62,47 @@ class RBF:
         
 
         self.outputLayer = None
+        self.trainError = None
+        self.testError = None
 
-    def forwardPass(self,inputData):
-        self.outputLayer =  np.zeros((inputData.shape[0],1))
+    def train(self,inputData,outputData):
 
-        for i in range(inputData.shape[0]):
-            gaussian = gaussianFunction(inputData[i],self.centres,self.sigmas)
-            self.outputLayer[i] = self.biasCoefficient + np.sum(gaussian * self.coefficients)
-        
-
-    def updateVariables(self,inputData,outputData):
         for i in range(inputData.shape[0]):
             inputInstance = inputData[i]
-            error = outputData[i] - self.outputLayer[i]       
+            output = outputData[i]
 
             gaussian = gaussianFunction(inputInstance,self.centres,self.sigmas)
-            commonPart = error * self.coefficients * gaussian
-            
-            partOfCentresUpdate = commonPart *((inputInstance-self.centres)/np.square(self.sigmas))
-            partOfSigmasUpdate = commonPart * (euclideanDistance(inputInstance,self.centres)/np.power(self.sigmas,3))
+            self.outputLayer = self.biasCoefficient + np.sum(gaussian * self.coefficients)
+
+            error = output - self.outputLayer
+            self.trainError += float(error) ** 2   
         
-            self.coefficients += (self.coefficientLearningRate*error*gaussian)
-            self.biasCoefficient += (self.coefficientLearningRate * error)
-            self.centres += (self.centresLearningRate * partOfCentresUpdate)
-            self.sigmas += (self.sigmasLearningRate*partOfSigmasUpdate)
+            self.updateVariables(inputInstance,output,error)
+        
 
-    def error(self,outputData):
-        return 0.5 * np.sum(np.square(outputData - self.outputLayer))
+    def updateVariables(self,inputInstance,output,error):
+        gaussian = gaussianFunction(inputInstance,self.centres,self.sigmas)
+        commonPart = error * self.coefficients * gaussian
+        
+        partOfCentresUpdate = commonPart *((inputInstance-self.centres)/np.square(self.sigmas))
+        partOfSigmasUpdate = commonPart * (euclideanDistance(inputInstance,self.centres)/np.power(self.sigmas,3))
+    
+        self.coefficients += (self.coefficientLearningRate*error*gaussian)
+        self.biasCoefficient += (self.coefficientLearningRate * error)
+        self.centres += (self.centresLearningRate * partOfCentresUpdate)
+        self.sigmas += (self.sigmasLearningRate*partOfSigmasUpdate)
  
+    def test(self,inputData,outputData):
 
+        for i in range(inputData.shape[0]):
+            inputInstance = inputData[i]
+            output = outputData[i]
+
+            gaussian = gaussianFunction(inputInstance,self.centres,self.sigmas)
+            self.outputLayer = self.biasCoefficient + np.sum(gaussian * self.coefficients)
+
+            error = output - self.outputLayer
+            self.testError += float(error) ** 2   
 
 if __name__ == "__main__":  
     parameters = readParameters()
@@ -121,18 +133,17 @@ if __name__ == "__main__":
 
     error =  []   
     for epoch in range(parameters[-4]):
-        # Forward pass with train data
-        RBFnetwork.forwardPass(trainInputData)
-        # Calculate train error
-        trainError = RBFnetwork.error(trainOutputData)
+        RBFnetwork.trainError = 0.0
+        RBFnetwork.testError = 0.0
 
-        # Update variables
-        RBFnetwork.updateVariables(trainInputData,trainOutputData)
+        # Forward pass with train data and update
+        RBFnetwork.train(trainInputData,trainOutputData)
+        trainError = float(RBFnetwork.trainError / 2)
+        
 
         # Forward pass with test data
-        RBFnetwork.forwardPass(testInputData)
-        # Calculate test error
-        testError = RBFnetwork.error(testOutputData)
+        RBFnetwork.test(testInputData,testOutputData)
+        testError = float(RBFnetwork.testError / 2)
         
         error.append([epoch+1,round(trainError,4),round(testError,4)])
 
