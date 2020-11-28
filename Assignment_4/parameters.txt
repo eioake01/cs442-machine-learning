@@ -1,9 +1,9 @@
-numHiddenLayerNeurons 4
+numHiddenLayerNeurons 6
 numInputNeurons 53
 numOutputNeurons 1
 learningRates learningRates.txt
 sigmas sigmas.txt
-maxIterations 100
-centresFile centres.txt
+maxIterations 40
+centresFile centresVector.txt
 trainFile training.txt
 testFile test.txt

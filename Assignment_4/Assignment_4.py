@@ -148,8 +148,8 @@ if __name__ == "__main__":
         error.append([epoch+1,round(trainError,4),round(testError,4)])
 
     allCoefficients = np.append(RBFnetwork.coefficients,RBFnetwork.biasCoefficient)
-    np.savetxt("error.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
-    np.savetxt("coefficients.txt",allCoefficients,fmt="%.4f",delimiter=",")
+    np.savetxt("results.txt",error,fmt='%i %.4f %.4f',delimiter='\t')
+    np.savetxt("weights.txt",allCoefficients,fmt="%.4f",delimiter=",")
     plotError(error)
     plt.show()
 
